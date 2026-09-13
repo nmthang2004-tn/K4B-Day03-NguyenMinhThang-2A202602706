@@ -1,29 +1,116 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Chào bạn, bạn có thể giới thiệu các tính năng cơ bản của trợ lý quản lý chi tiêu cá nhân không?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "Gemini (gemini-3.8-flash) phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn! Tôi là **Trợ lý Quản lý Chi tiêu Cá nhân**. Tôi có thể hỗ trợ bạn theo dõi và quản lý tài chính hàng ngày một cách hiệu quả với các tính năng chính sau:\n\n1. **Ghi nhận và Quản lý Giao dịch:**\n   - Thêm mới các khoản chi tiêu hàng ngày (số tiền, danh mục, mô tả, ngày giao dịch).\n   - Tra cứu, cập nhật hoặc xóa các giao dịch đã ghi nhận.\n   - Hỗ trợ phân loại chi tiêu theo các danh mục như: Ăn uống (*Dining*), Mua sắm nhu yếu phẩm (*Groceries*), Di chuyển (*Transport*), Giải trí (*Entertainment*), v.v.\n\n2. **Tính toán và Thống kê Chi tiêu:**\n   - Tính tổng chi tiêu theo chu kỳ (ngày, tuần, tháng) hoặc theo từng danh mục cụ thể.\n   - Thống kê tỷ lệ sử dụng ngân sách so với hạn mức đã đề ra.\n   - Tính số dư ngân sách còn lại để bạn kịp thời điều chỉnh kế hoạch chi tiêu.\n\n3. **Giám sát và Cảnh báo Ngân sách:**\n   - Theo dõi trạng thái chi tiêu theo hạn mức định trước.\n   - Phát hiện sớm và đưa ra cảnh báo khi chi tiêu chạm ngưỡng nguy hiểm (ví dụ: đã dùng quá 80% hạn mức) hoặc có nguy cơ thâm hụt.\n   - Gợi ý điều chỉnh, cắt giảm chi phí hợp lý để đảm bảo an toàn tài chính.\n\nBạn có muốn ghi nhận một khoản chi tiêu mới hoặc kiểm tra ngân sách hiện tại không? Hãy cho tôi biết nhé!",
+    "llm_model": "gemini-3.8-flash",
+    "latency_ms": 6658.95
   },
   {
     "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hôm nay mình vừa đổ xăng hết 90.000đ, hãy ghi sổ giúp mình.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "expense_database_tool",
     "arguments": {
-      "student_id": "SV2026001"
+      "category": "Transport",
+      "amount": 90000,
+      "description": "Đổ xăng",
+      "action": "add"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "transaction": {
+        "transaction_id": "TX-003",
+        "amount": 90000.0,
+        "category": "Transport",
+        "description": "Đổ xăng",
+        "date": null
+      }
+    },
+    "llm_model": "gemini-3.7-flash",
+    "latency_ms": 18182.14
   },
   {
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hôm nay mình vừa đổ xăng hết 90.000đ, hãy ghi sổ giúp mình.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
+    "thought": "Tổng hợp kết quả từ MCP Server.",
+    "output": "Đã ghi nhận giao dịch chi tiêu: Đổ xăng – Transport – 90.000đ (Mã GD: TX-003).",
     "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hôm nay mình đi siêu thị hết 850.000đ và đổ xăng 90.000đ, hãy ghi sổ giúp mình và cho biết mình đã tiêu tổng cộng bao nhiêu trong ngày.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "expense_database_tool",
+    "arguments": {
+      "description": "Đi siêu thị",
+      "amount": 850000,
+      "category": "Groceries",
+      "action": "add"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "transaction": {
+        "transaction_id": "TX-004",
+        "amount": 850000.0,
+        "category": "Groceries",
+        "description": "Đi siêu thị",
+        "date": null
+      }
+    },
+    "llm_model": "gemini-3.6-flash",
+    "latency_ms": 10641.13
+  },
+  {
+    "step": 2,
+    "query": "Hôm nay mình đi siêu thị hết 850.000đ và đổ xăng 90.000đ, hãy ghi sổ giúp mình và cho biết mình đã tiêu tổng cộng bao nhiêu trong ngày.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server.",
+    "output": "Đã ghi nhận giao dịch chi tiêu: Đi siêu thị – Groceries – 850.000đ (Mã GD: TX-004).",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Mình vừa thanh toán hóa đơn ăn nhà hàng 1.200.000đ. Xem giúp mình danh mục Ăn uống tháng này còn bao nhiêu?",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "expense_database_tool",
+    "arguments": {
+      "category": "Dining",
+      "amount": 1200000,
+      "description": "Ăn nhà hàng",
+      "action": "add"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "transaction": {
+        "transaction_id": "TX-005",
+        "amount": 1200000.0,
+        "category": "Dining",
+        "description": "Ăn nhà hàng",
+        "date": null
+      }
+    },
+    "llm_model": "gemini-3.7-flash",
+    "latency_ms": 10805.32
+  },
+  {
+    "step": 2,
+    "query": "Mình vừa thanh toán hóa đơn ăn nhà hàng 1.200.000đ. Xem giúp mình danh mục Ăn uống tháng này còn bao nhiêu?",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server.",
+    "output": "Đã ghi nhận giao dịch chi tiêu: Ăn nhà hàng – Dining – 1.200.000đ (Mã GD: TX-005).",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Mình vừa tiêu 200k, ghi sổ giúp mình.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini (gemini-3.8-flash) phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Bạn vừa chi 200.000đ cho khoản nào thế? Hãy cho mình biết thêm nội dung chi tiêu hoặc danh mục (ví dụ: **Ăn uống (Dining)**, **Mua sắm (Groceries)**, **Di chuyển (Transport)**, **Giải trí (Entertainment)**,...) để mình ghi sổ chính xác nhé!",
+    "llm_model": "gemini-3.8-flash",
+    "latency_ms": 4149.73
   }
 ]

@@ -1,4 +1,4 @@
-"""
+﻿"""
 🔌 MULTI-PROVIDER LLM ADAPTER (Google Gemini, OpenAI & Offline Mock)
 Hỗ trợ Native Tool Calling và chuyển đổi linh hoạt qua biến môi trường LLM_PROVIDER.
 """
@@ -36,28 +36,57 @@ class MockOfflineProvider(BaseLLMProvider):
 
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
         prompt_lower = prompt.lower()
-        
-        # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+
+        # Mô phỏng nhận diện intent gọi Tool cho quản lý chi tiêu
+        if "ngân sách" in prompt_lower and ("ăn" in prompt_lower or "dining" in prompt_lower):
             return {
                 "type": "tool_call",
-                "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+                "tool_name": "budget_checker",
+                "arguments": {"category": "Dining", "period": "month", "warning_threshold": 0.8},
+                "thought": "Người dùng muốn kiểm tra ngân sách danh mục Ăn uống. Tôi sẽ gọi budget_checker.",
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+        if "còn bao nhiêu" in prompt_lower or "tổng cộng bao nhiêu" in prompt_lower or "đã tiêu" in prompt_lower:
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "budget_calculator",
+                "arguments": {"operation": "sum_expenses", "period": "day"},
+                "thought": "Người dùng yêu cầu thống kê chi tiêu. Tôi sẽ gọi budget_calculator để tính tổng chi tiêu.",
             }
-        else:
+        if "đổ xăng" in prompt_lower or "siêu thị" in prompt_lower or "thanh toán" in prompt_lower or "tiêu" in prompt_lower or "chi" in prompt_lower:
+            # TC05: câu thiếu danh mục "- vừa tiêu 200k" => trả lời hỏi lại thay vì gọi tool sai
+            if prompt_lower.strip() in ("mình vừa tiêu 200k, ghi sổ giúp mình.", "mình vừa tiêu 200k ghi sổ giúp mình"):
+                return {
+                    "type": "text",
+                    "content": "Bạn muốn ghi số tiền 200.000đ vào danh mục nào? Ví dụ: Ăn uống, Di chuyển, Giải trí, Mua sắm...",
+                    "thought": "Câu lệnh thiếu danh mục chi tiêu. Cần hỏi lại để làm rõ trước khi gọi expense_database_tool.",
+                }
+            # TC02/TC03: ghi sổ đơn giản
+            if "đổ xăng" in prompt_lower and "siêu thị" not in prompt_lower:
+                return {
+                    "type": "tool_call",
+                    "tool_name": "expense_database_tool",
+                    "arguments": {"action": "add", "amount": 90000, "category": "Transport", "description": "Đổ xăng"},
+                    "thought": "Người dùng yêu cầu ghi sổ đổ xăng 90.000đ. Tôi sẽ gọi expense_database_tool.",
+                }
+            if "siêu thị" in prompt_lower:
+                return {
+                    "type": "tool_call",
+                    "tool_name": "expense_database_tool",
+                    "arguments": {"action": "add", "amount": 850000, "category": "Groceries", "description": "Siêu thị"},
+                    "thought": "Người dùng yêu cầu ghi sổ siêu thị 850.000đ. Tôi sẽ gọi expense_database_tool.",
+                }
             return {
-                "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "type": "tool_call",
+                "tool_name": "expense_database_tool",
+                "arguments": {"action": "add", "amount": 200000, "category": "Other", "description": "Chi tiêu"},
+                "thought": "Người dùng yêu cầu ghi sổ chi tiêu. Tôi sẽ gọi expense_database_tool.",
             }
+
+        return {
+            "type": "text",
+            "content": "Xin chào! Tôi là trợ lý quản lý chi tiêu cá nhân. Tôi có thể giúp bạn ghi sổ chi tiêu, tính tổng chi tiêu theo ngày/tuần/tháng và cảnh báo khi ngân sách sắp vượt ngưỡng.",
+            "thought": "Câu hỏi chung về tính năng trợ lý. Trả lời trực tiếp không cần gọi Tool.",
+        }
 
 
 class GeminiProvider(BaseLLMProvider):
@@ -65,6 +94,28 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.model_name = model or os.getenv("LLM_MODEL") or "gemini-2.5-flash"
+        configured_fallbacks = os.getenv(
+            "GEMINI_FALLBACK_MODELS",
+            "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash",
+        )
+        self.fallback_models = [
+            item.strip() for item in configured_fallbacks.split(",") if item.strip()
+        ]
+
+    @staticmethod
+    def _is_model_fallback_error(error: Exception) -> bool:
+        """Chỉ chuyển model khi API báo hết quota hoặc model tạm không khả dụng."""
+        message = str(error).upper()
+        return (
+            "429" in message
+            or "RESOURCE_EXHAUSTED" in message
+            or "503" in message
+            or "UNAVAILABLE" in message
+        )
+
+    def _model_candidates(self) -> List[str]:
+        """Giữ model trong .env là ưu tiên, sau đó dùng các Flash model dự phòng."""
+        return list(dict.fromkeys([self.model_name, *self.fallback_models]))
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_gemini_api_key_here":
@@ -73,8 +124,19 @@ class GeminiProvider(BaseLLMProvider):
             from google import genai
             client = genai.Client(api_key=self.api_key)
             contents = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-            response = client.models.generate_content(model=self.model_name, contents=contents)
-            return response.text
+            last_error = None
+            for candidate in self._model_candidates():
+                try:
+                    response = client.models.generate_content(model=candidate, contents=contents)
+                    if candidate != self.model_name:
+                        print(f"ℹ️ [Gemini Provider]: Model '{self.model_name}' hết quota; dùng '{candidate}'.")
+                    return response.text
+                except Exception as error:
+                    last_error = error
+                    if not self._is_model_fallback_error(error):
+                        raise
+                    print(f"⚠️ [Gemini Provider]: '{candidate}' không khả dụng ({str(error).splitlines()[0]}); thử model dự phòng.")
+            raise last_error
         except Exception as e:
             return f"[Gemini Exception]: {str(e)}"
 
@@ -107,11 +169,28 @@ class GeminiProvider(BaseLLMProvider):
                 temperature=0.2
             )
 
-            response = client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=config
-            )
+            last_error = None
+            response = None
+            used_model = self.model_name
+            for candidate in self._model_candidates():
+                try:
+                    response = client.models.generate_content(
+                        model=candidate,
+                        contents=prompt,
+                        config=config,
+                    )
+                    used_model = candidate
+                    if candidate != self.model_name:
+                        print(f"ℹ️ [Gemini Provider]: Model '{self.model_name}' hết quota; dùng '{candidate}'.")
+                    break
+                except Exception as error:
+                    last_error = error
+                    if not self._is_model_fallback_error(error):
+                        raise
+                    print(f"⚠️ [Gemini Provider]: '{candidate}' không khả dụng ({str(error).splitlines()[0]}); thử model dự phòng.")
+
+            if response is None:
+                raise last_error
 
             # Kiểm tra xem Gemini có trả về Tool Call không
             if response.function_calls:
@@ -121,13 +200,15 @@ class GeminiProvider(BaseLLMProvider):
                     "type": "tool_call",
                     "tool_name": call.name,
                     "arguments": args,
-                    "thought": f"Gemini quyết định gọi công cụ '{call.name}' với tham số: {json.dumps(args, ensure_ascii=False)}"
+                    "model": used_model,
+                    "thought": f"Gemini ({used_model}) quyết định gọi công cụ '{call.name}' với tham số: {json.dumps(args, ensure_ascii=False)}"
                 }
             else:
                 return {
                     "type": "text",
                     "content": response.text or "",
-                    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ)."
+                    "model": used_model,
+                    "thought": f"Gemini ({used_model}) phản hồi trực tiếp bằng văn bản (không cần gọi công cụ)."
                 }
 
         except Exception as e:

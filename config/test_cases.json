@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, bạn có thể giới thiệu các tính năng cơ bản của trợ lý quản lý chi tiêu cá nhân không?",
+    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, giới thiệu các tính năng ghi sổ chi tiêu, theo dõi ngân sách, cảnh báo thâm hụt và mục tiêu tiết kiệm mà không cần gọi bất kỳ Tool nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hôm nay mình vừa đổ xăng hết 90.000đ, hãy ghi sổ giúp mình.",
+    "expected_behavior": "Agent nhận diện nhu cầu ghi sổ chi tiêu, tự động phát sinh Tool Call 'expense_database_tool' với số tiền 90000 và danh mục 'Transport', sau đó xác nhận đã lưu giao dịch thành công.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "multi_tool_query",
+    "question": "Hôm nay mình đi siêu thị hết 850.000đ và đổ xăng 90.000đ, hãy ghi sổ giúp mình và cho biết mình đã tiêu tổng cộng bao nhiêu trong ngày.",
+    "expected_behavior": "Agent bóc tách 2 khoản chi (850k - Groceries, 90k - Transport), gọi Tool 'expense_database_tool' để lưu DB và dùng 'budget_calculator' cộng ra đúng 940.000đ, trả về tổng chi tiêu trong ngày chính xác.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC04",
+    "type": "dynamic_decision",
+    "question": "Mình vừa thanh toán hóa đơn ăn nhà hàng 1.200.000đ. Xem giúp mình danh mục Ăn uống tháng này còn bao nhiêu?",
+    "expected_behavior": "Agent kiểm tra ngân sách danh mục 'Dining' qua 'expense_database_tool' và 'budget_checker'. Nếu khoản 1.2M làm vượt ngưỡng 80% hoặc vượt hạn mức tháng, Agent phải đưa ra cảnh báo thâm hụt ngân sách và đề xuất danh mục cắt giảm thay vì chỉ xác nhận đã ghi sổ.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Mình vừa tiêu 200k, ghi sổ giúp mình.",
+    "expected_behavior": "Agent nhận thấy câu lệnh thiếu thông tin danh mục chi tiêu, đặt câu hỏi làm rõ danh mục (Ăn uống, Di chuyển, Giải trí...) trước khi ghi sổ, không tự bịa đặt danh mục hoặc ghi sai dữ liệu.",
+    "complexity": "Medium"
+  }
+]
