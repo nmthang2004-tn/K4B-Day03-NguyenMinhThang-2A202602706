@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance ReAct Agent · Live Demo</title>
+  <style>
+    :root { --ink:#17233b; --muted:#61708b; --paper:#f5f7fb; --line:#dce3f0; --brand:#5d47e8; --cyan:#07a6be; --green:#16815e; --orange:#d97918; --danger:#c74a53; --card:#fff; }
+    * { box-sizing:border-box; } body { margin:0; font:15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink); background:var(--paper); }
+    header { padding:30px max(24px, calc((100vw - 1200px)/2)); color:#fff; background:radial-gradient(circle at 8% 0%, #8d71ff 0, transparent 33%), linear-gradient(112deg, #17255a, #342b85 58%, #076b78); }
+    .topline { display:flex; justify-content:space-between; gap:16px; align-items:center; } h1 { font-size:clamp(26px,4vw,42px); line-height:1.12; margin:16px 0 10px; letter-spacing:-.04em; } .subtitle { max-width:720px; color:#d9e3ff; margin:0; font-size:16px; } .badge { display:inline-flex; gap:7px; align-items:center; border:1px solid #aebeff66; background:#ffffff18; border-radius:999px; padding:6px 11px; font-weight:650; font-size:13px; } .dot { width:8px; height:8px; border-radius:50%; background:#6ee7b7; box-shadow:0 0 0 4px #6ee7b733; }
+    main { max-width:1200px; margin:0 auto; padding:28px 24px 50px; } .grid { display:grid; grid-template-columns:1.08fr .92fr; gap:22px; } .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 8px 28px #28395d0b; } h2 { margin:0 0 8px; font-size:18px; letter-spacing:-.02em; } .hint, .small { color:var(--muted); margin:0 0 16px; } textarea { display:block; width:100%; min-height:112px; resize:vertical; padding:14px; font:inherit; border:1px solid #bac6da; color:var(--ink); border-radius:12px; outline:none; } textarea:focus { border-color:var(--brand); box-shadow:0 0 0 4px #5d47e818; } .actions { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:12px; } button { cursor:pointer; border:0; border-radius:10px; padding:10px 14px; background:var(--brand); color:#fff; font:inherit; font-weight:750; box-shadow:0 5px 12px #5d47e830; } button:hover { filter:brightness(1.06); } button:disabled { opacity:.6; cursor:wait; } .quick { display:flex; gap:7px; flex-wrap:wrap; } .quick button { color:#48406b; background:#ece9ff; padding:7px 10px; box-shadow:none; font-size:12px; }
+    .metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; } .metric { border:1px solid var(--line); border-radius:12px; padding:13px; background:linear-gradient(145deg,#fff,#f8faff); } .metric span { display:block; color:var(--muted); font-size:12px; } .metric strong { font-size:15px; overflow-wrap:anywhere; }
+    .answer { min-height:125px; white-space:pre-wrap; border-radius:13px; padding:16px; background:#f4f2ff; border-left:4px solid var(--brand); } .empty { color:var(--muted); font-style:italic; } .full { grid-column:1/-1; } .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; } .step { position:relative; border:1px solid var(--line); border-radius:13px; padding:14px; min-height:130px; background:#fff; } .step:not(:last-child):after { content:"→"; position:absolute; right:-17px; top:50px; z-index:2; color:#8793ab; font-size:22px; } .step .num { display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; font-size:12px; color:#fff; background:var(--brand); font-weight:800; } .step.action .num { background:var(--orange); } .step.obs .num { background:var(--cyan); } .step.final .num { background:var(--green); } .step h3 { font-size:14px; margin:9px 0 4px; } .step p { color:var(--muted); font-size:12px; margin:0; }
+    .trace { display:grid; gap:12px; } .trace-event { border:1px solid var(--line); border-left:4px solid var(--brand); padding:14px; border-radius:10px; background:#fff; } .trace-event.tool { border-left-color:var(--orange); } .trace-event.final { border-left-color:var(--green); } .trace-head { display:flex; justify-content:space-between; gap:10px; align-items:center; font-weight:750; } .trace-meta { color:var(--muted); font-size:12px; } pre { margin:10px 0 0; max-height:220px; overflow:auto; padding:11px; border-radius:8px; background:#19233a; color:#d9e8ff; font:12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .test-list { display:grid; gap:8px; } .test { display:flex; justify-content:space-between; gap:12px; padding:10px; border:1px solid var(--line); border-radius:10px; cursor:pointer; } .test:hover { border-color:var(--brand); background:#f8f7ff; } .test b { font-size:12px; color:var(--brand); } .test span { color:var(--muted); font-size:12px; text-align:right; }
+    @media (max-width:820px) { .grid { grid-template-columns:1fr; } .flow { grid-template-columns:1fr 1fr; } .step:not(:last-child):after { display:none; } .topline { align-items:flex-start; flex-direction:column; } } @media (max-width:480px) { main { padding:18px 14px; } header { padding:24px 18px; } .card { padding:16px; } .flow, .metrics { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topline"><span class="badge"><i class="dot"></i> LIVE AGENT DEMO</span><span id="provider" class="badge">Đang kết nối…</span></div>
+    <h1>Finance ReAct Agent</h1>
+    <p class="subtitle">Một dashboard để demo rõ cách LLM quyết định, gọi MCP Tool, đọc Observation và tạo câu trả lời có căn cứ.</p>
+  </header>
+  <main>
+    <section class="grid">
+      <div class="card">
+        <h2>💬 Hỏi trợ lý tài chính</h2>
+        <p class="hint">Thử ghi chi tiêu, hỏi số dư ngân sách hoặc đưa một yêu cầu thiếu thông tin.</p>
+        <textarea id="query" placeholder="Ví dụ: Hôm nay mình vừa đổ xăng hết 90.000đ, hãy ghi sổ giúp mình."></textarea>
+        <div class="actions"><div class="quick"><button data-q="Hôm nay mình vừa đổ xăng hết 90.000đ, hãy ghi sổ giúp mình.">Ghi chi tiêu</button><button data-q="Ngân sách ăn uống tháng này còn bao nhiêu?">Kiểm tra ngân sách</button><button data-q="Mình vừa tiêu 200k, ghi sổ giúp mình.">Tình huống mơ hồ</button></div><button id="send">Gửi đến Agent →</button></div>
+      </div>
+      <aside class="card">
+        <h2>📡 Trạng thái hệ thống</h2>
+        <div class="metrics"><div class="metric"><span>LLM Provider</span><strong id="providerName">—</strong></div><div class="metric"><span>Model ưu tiên</span><strong id="model">—</strong></div><div class="metric"><span>MCP Server</span><strong id="mcp">—</strong></div><div class="metric"><span>Tools công bố</span><strong id="toolCount">—</strong></div></div>
+      </aside>
+      <section class="card full"><h2>🏁 Câu trả lời cuối cùng</h2><div id="answer" class="answer"><span class="empty">Chưa có yêu cầu nào. Câu trả lời có căn cứ sẽ xuất hiện ở đây.</span></div></section>
+      <section class="card full"><h2>🔄 Waterfall — Agent đang làm gì?</h2><p class="hint">Một luồng ReAct minh bạch: suy luận → hành động → quan sát → kết quả.</p><div class="flow"><article class="step"><span class="num">1</span><h3>Người dùng</h3><p>Đặt mục tiêu bằng ngôn ngữ tự nhiên.</p></article><article class="step action"><span class="num">2</span><h3>LLM & Tool Call</h3><p>Chọn công cụ MCP và tham số phù hợp.</p></article><article class="step obs"><span class="num">3</span><h3>Observation</h3><p>MCP trả dữ liệu giao dịch/ngân sách.</p></article><article class="step final"><span class="num">4</span><h3>Final Answer</h3><p>Tổng hợp dữ liệu thành phản hồi dễ hiểu.</p></article></div></section>
+      <section class="card full"><h2>🧾 Trace của lượt chạy gần nhất</h2><p class="hint">Mỗi event đều có latency và model thực thi để dùng khi thuyết trình.</p><div id="trace" class="trace"><p class="empty">Trace sẽ xuất hiện sau khi gửi câu hỏi.</p></div></section>
+      <section class="card full"><h2>🧪 Bộ test demo</h2><p class="hint">Nhấn một case để nạp prompt vào ô chat, sau đó bấm “Gửi đến Agent”.</p><div id="tests" class="test-list"></div></section>
+    </section>
+  </main>
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const query = $('#query'), send = $('#send'), answer = $('#answer'), trace = $('#trace');
+    const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const pretty = (value) => esc(JSON.stringify(value, null, 2));
+    async function api(url, options) { const r = await fetch(url, options); const data = await r.json(); if (!r.ok) throw new Error(data.error || 'Không thể kết nối Agent.'); return data; }
+    function drawTrace(events) {
+      if (!events?.length) { trace.innerHTML = '<p class="empty">Agent không trả về trace.</p>'; return; }
+      trace.innerHTML = events.map(event => {
+        const kind = event.action_type === 'TOOL_EXECUTION' ? 'tool' : 'final';
+        const title = kind === 'tool' ? `🛠️ Tool: ${esc(event.tool_name)}` : '🏁 Final Answer';
+        const data = kind === 'tool' ? {arguments:event.arguments, observation:event.observation} : {thought:event.thought, output:event.output};
+        return `<article class="trace-event ${kind}"><div class="trace-head"><span>${title}</span><span class="trace-meta">${esc(event.llm_model || 'Agent synthesis')} · ${esc(event.latency_ms)} ms</span></div><pre>${pretty(data)}</pre></article>`;
+      }).join('');
+    }
+    async function submit() {
+      const text = query.value.trim(); if (!text) { query.focus(); return; }
+      send.disabled = true; send.textContent = 'Agent đang suy luận…'; answer.innerHTML = '<span class="empty">Đang gọi LLM và MCP Server…</span>'; trace.innerHTML = '<p class="empty">Đang xây Waterfall trace…</p>';
+      try { const data = await api('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query:text})}); answer.textContent = data.answer; drawTrace(data.trace); }
+      catch (error) { answer.innerHTML = `<span style="color:#c74a53">${esc(error.message)}</span>`; trace.innerHTML = ''; }
+      finally { send.disabled = false; send.textContent = 'Gửi đến Agent →'; }
+    }
+    async function init() {
+      try { const health = await api('/api/health'); $('#provider').textContent = health.provider; $('#providerName').textContent = health.provider; $('#model').textContent = health.model; $('#mcp').textContent = health.mcp_server; $('#toolCount').textContent = health.tool_count; const tests = await api('/api/test-cases'); $('#tests').innerHTML = tests.items.map(t => `<div class="test" data-q="${esc(t.question)}"><div><b>${esc(t.id)}</b><br>${esc(t.question)}</div><span>${esc(t.complexity)}</span></div>`).join(''); document.querySelectorAll('.test').forEach(item => item.onclick = () => { query.value = item.dataset.q; query.focus(); window.scrollTo({top:0, behavior:'smooth'}); }); }
+      catch (error) { $('#provider').textContent = 'Server chưa sẵn sàng'; }
+    }
+    send.onclick = submit; query.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') submit(); }); document.querySelectorAll('.quick button').forEach(btn => btn.onclick = () => { query.value = btn.dataset.q; query.focus(); }); init();
+  </script>
+</body>
+</html>

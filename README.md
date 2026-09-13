@@ -41,6 +41,16 @@ cp config/test_cases.example.json config/test_cases.json
 python src/app.py --all
 ```
 
+### 🎨 Web Demo UI/UX — trình bày ReAct Agent trực quan
+
+Khởi chạy dashboard demo (không cần cài thêm thư viện) và mở `http://127.0.0.1:8000`:
+
+```bash
+python src/web_app.py
+```
+
+Giao diện hiển thị câu trả lời, trạng thái Provider/MCP, các test case có thể bấm chọn và waterfall `LLM → Tool Call → Observation → Final Answer` kèm latency/model cho từng event. Nhấn `Ctrl+C` trong terminal để dừng.
+
 **Kỳ vọng Output màn hình:**
 ```text
 ✅ [MOCK OFFLINE MODE PASS]: Môi trường đã sẵn sàng! 
